@@ -182,7 +182,7 @@ class JDETracker(object):
 
         Parameters
         ----------
-        im_blob : torch.float32
+        im_blob : torch.float
                   Tensor of shape depending upon the size of image. By default, shape of this tensor is [1, 3, 608, 1088]
 
         img0 : ndarray
