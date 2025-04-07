@@ -77,7 +77,7 @@ def make_parser():
     )
     parser.add_argument(
         "--test",
-        dest="train",
+        dest="test",
         default=False,
         action="store_true",
         help="Evaluating on test-dev set.",
