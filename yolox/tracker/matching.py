@@ -103,7 +103,7 @@ def gious(atlbrs, btlbrs):
     :rtype: np.ndarray
     """
     gious = np.zeros((len(atlbrs), len(btlbrs)), dtype=float)
-    if ious.size == 0:
+    if gious.size == 0:
         return ious
 
     gious = bbox_gious(
