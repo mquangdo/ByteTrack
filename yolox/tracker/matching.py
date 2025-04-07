@@ -49,6 +49,91 @@ def linear_assignment(cost_matrix, thresh):
     matches = np.asarray(matches)
     return matches, unmatched_a, unmatched_b
 
+import numpy as np
+
+def bbox_gious(boxes1, boxes2):
+    """
+    Tính GIoU giữa mỗi cặp box trong boxes1 và boxes2
+    :param boxes1: (N, 4) ndarray
+    :param boxes2: (M, 4) ndarray
+    :return: (N, M) ndarray chứa GIoU
+    """
+    N = boxes1.shape[0]
+    M = boxes2.shape[0]
+    gious = np.zeros((N, M), dtype=float)
+
+    for i in range(N):
+        x1, y1, x2, y2 = boxes1[i]
+        area1 = (x2 - x1) * (y2 - y1)
+        for j in range(M):
+            xx1, yy1, xx2, yy2 = boxes2[j]
+            area2 = (xx2 - xx1) * (yy2 - yy1)
+
+            # Intersection
+            inter_x1 = max(x1, xx1)
+            inter_y1 = max(y1, yy1)
+            inter_x2 = min(x2, xx2)
+            inter_y2 = min(y2, yy2)
+            inter_w = max(0, inter_x2 - inter_x1)
+            inter_h = max(0, inter_y2 - inter_y1)
+            inter_area = inter_w * inter_h
+
+            # Union
+            union_area = area1 + area2 - inter_area
+            iou = inter_area / union_area if union_area > 0 else 0.0
+
+            # Smallest enclosing box
+            enc_x1 = min(x1, xx1)
+            enc_y1 = min(y1, yy1)
+            enc_x2 = max(x2, xx2)
+            enc_y2 = max(y2, yy2)
+            enc_area = (enc_x2 - enc_x1) * (enc_y2 - enc_y1)
+
+            giou = iou - (enc_area - union_area) / enc_area if enc_area > 0 else iou
+            gious[i, j] = giou
+
+    return gious
+
+
+def gious(atlbrs, btlbrs):
+    """
+    Compute GIoU between two sets of boxes
+    :type atlbrs: list[list[float]] | np.ndarray
+    :type btlbrs: list[list[float]] | np.ndarray
+    :rtype: np.ndarray
+    """
+    gious = np.zeros((len(atlbrs), len(btlbrs)), dtype=float)
+    if ious.size == 0:
+        return ious
+
+    gious = bbox_gious(
+        np.ascontiguousarray(atlbrs, dtype=float),
+        np.ascontiguousarray(btlbrs, dtype=float)
+    )
+
+    return gious
+
+
+def giou_distance(atracks, btracks):
+    """
+    Compute cost based on IoU
+    :type atracks: list[STrack]
+    :type btracks: list[STrack]
+
+    :rtype cost_matrix np.ndarray
+    """
+
+    if (len(atracks)>0 and isinstance(atracks[0], np.ndarray)) or (len(btracks) > 0 and isinstance(btracks[0], np.ndarray)):
+        atlbrs = atracks
+        btlbrs = btracks
+    else:
+        atlbrs = [track.tlbr for track in atracks]
+        btlbrs = [track.tlbr for track in btracks]
+    _gious = gious(atlbrs, btlbrs)
+    cost_matrix = 1 - _gious
+
+    return cost_matrix
+
 
 def ious(atlbrs, btlbrs):
     """
